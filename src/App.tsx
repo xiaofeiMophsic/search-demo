@@ -27,9 +27,12 @@ import {
   theme,
   ConfigProvider,
   Space,
+  Tag
 } from 'antd';
 import React, { useRef, useState } from 'react';
 import defaultProps from './_defaultProps.tsx';
+import utils from './utils.tsx'
+import { TextAreaRef } from 'antd/es/input/TextArea';
 
 const Item: React.FC<{ children: React.ReactNode }> = (props) => {
   const { token } = theme.useToken();
@@ -58,6 +61,8 @@ const Item: React.FC<{ children: React.ReactNode }> = (props) => {
     </div>
   );
 };
+
+const { TextArea } = Input;
 
 const List: React.FC<{ title: string; style?: React.CSSProperties }> = (
   props,
@@ -275,6 +280,17 @@ export default () => {
   const inputRef = useRef<InputRef>(null);
   const inputSi = useRef<InputRef>(null);
 
+  const articleRef = useRef<TextAreaRef>(null);
+  const inputAiPrompt = useRef<InputRef>(null)
+
+  const openAi = (prompt: String)=>{
+    let article = articleRef.current?.resizableTextArea?.textArea.value
+
+    let compose = article + "\n" + prompt
+    utils.copy(compose)
+    window.open("https://yiyan.baidu.com/")
+  }
+
   const openBaidu = ()=>{
 
     // 搜索字符串
@@ -464,9 +480,11 @@ export default () => {
                   height: '200vh',
                   minHeight: 800,
                 }}
+                direction="column"
+                
               >
                 <Space direction="vertical">
-                  <Input defaultValue="大厂" style={{ width: '200%'}} ref={inputRef}/>
+                  <Input defaultValue="大厂" style={{ width: '50%'}} ref={inputRef}/>
                   <Space wrap>
 
                   <Space.Compact style={{ width: '100%' }}>
@@ -481,6 +499,48 @@ export default () => {
                     }}>微博</Button>
                   </Space>
                 </Space> 
+                <ProCard 
+                  style={{ marginBlockStart: 28 }} 
+                  colSpan="100%" 
+                  bordered
+                  split={ 'vertical'}
+                  headerBordered
+                  >
+                    <ProCard title="文章内容" colSpan="50%">
+                      <TextArea rows={24} 
+                        placeholder='输入文章内容'
+                        ref={articleRef}
+                      />
+                    </ProCard>
+                    <ProCard title="AI 提示词">
+                    <Space direction='vertical' size={[0, 20]} >
+                      <Tag color="magenta" onClick={(e)=>{
+                        openAi(e.target?.innerText || "")
+                      }
+                    }>内容用中文写一篇稿子，开头不要和原文一样，把【大厂青年】写到文章第一段话的开头</Tag>
+                      <Tag color="red" onClick={(e)=>{
+                        openAi(e.target?.innerText || "")
+                      }
+                    }>就以上内容用中文写一篇稿子，开头不要和原文一样，把【大厂青年】写到文章第一段话的开头</Tag>
+                      {/* <Tag color="volcano"></Tag>
+                      <Tag color="orange">orange</Tag>
+                      <Tag color="gold">gold</Tag>
+                      <Tag color="lime">lime</Tag>
+                      <Tag color="green">green</Tag>
+                      <Tag color="cyan">cyan</Tag>
+                      <Tag color="blue">blue</Tag>
+                      <Tag color="geekblue">geekblue</Tag>
+                      <Tag color="purple">purple</Tag> */}
+                      <Space.Compact style={{ width: '100%' }}>
+                        <Input placeholder="AI 提示词" allowClear ref={inputAiPrompt} />
+                      
+                        <Button type="primary" onClick={()=>{
+                            openAi(inputAiPrompt.current?.input?.value || "")
+                        }}>文心一言</Button>
+                      </Space.Compact>
+                    </Space>
+                    </ProCard>
+                </ProCard>
               </ProCard>
             </PageContainer>
 
