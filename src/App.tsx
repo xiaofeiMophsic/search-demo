@@ -9,7 +9,7 @@ import {
   SearchOutlined,
 } from '@ant-design/icons';
 import type { ProSettings } from '@ant-design/pro-components';
-import type { InputRef } from 'antd';
+import { DatePicker, Form, InputRef, Radio, RadioChangeEvent, TimePicker } from 'antd';
 import {
   PageContainer,
   ProCard,
@@ -33,6 +33,13 @@ import React, { useRef, useState } from 'react';
 import defaultProps from './_defaultProps.tsx';
 import utils from './utils.tsx'
 import { TextAreaRef } from 'antd/es/input/TextArea';
+import dayjs from 'dayjs';
+import type { DatePickerProps, RangePickerProps } from 'antd/es/date-picker';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+
+dayjs.extend(customParseFormat);
+
+type LayoutType = Parameters<typeof Form>[0]['layout'];
 
 const Item: React.FC<{ children: React.ReactNode }> = (props) => {
   const { token } = theme.useToken();
@@ -163,6 +170,8 @@ const SearchInput = () => {
 };
 
 export default () => {
+  const dateFormat = "YYYY-MM-DD-HH"
+
   const [settings, setSetting] = useState<Partial<ProSettings> | undefined>({
     fixSiderbar: true,
     layout: 'mix',
@@ -177,6 +186,17 @@ export default () => {
 
   const articleRef = useRef<TextAreaRef>(null);
   const inputAiPrompt = useRef<InputRef>(null)
+
+
+  const [form] = Form.useForm();
+  const onTypeChange = (value: RadioChangeEvent)=>{
+    form.setFieldsValue({type: value.target.value})
+  }
+
+  const onDateChange = (dateTime: RangePickerProps['value'], dateString: [string, string])=>{
+    // console.log(dateTime?.[0]?.format(dateFormat));
+    form.setFieldsValue({date: dateTime})
+  }
 
   let openWindow: Window | null = null
 
@@ -205,7 +225,7 @@ export default () => {
     url.searchParams.append("wd", inputStr);
     //站内地址： &si=baijiahao.com
     url.searchParams.append("si", siteStr);
-    window.open(url.toString())
+    window.open(url.toString(), "baidu")
   }
 
   const openWeibo = ()=>{
@@ -219,6 +239,28 @@ export default () => {
   const openAll = ()=>{
     openBaidu();
     openWeibo();
+  }
+
+  const openMaimai = ()=>{
+    const inputStr = inputRef.current?.input?.value
+    const searchStr = "https://maimai.cn/web/search_center?type=feed&highlight=true&query=" + inputStr
+    console.log(searchStr)
+    window.open(searchStr, "maimai")
+  }
+
+  const onWeiboFinish = (values: any)=>{
+      let type = values.type;
+
+      let tmpDate = values.date
+      let date = "custom:" + tmpDate[0].format(dateFormat) + ":" + tmpDate[1].format(dateFormat)
+
+      const inputStr = inputRef.current?.input?.value
+      const searchStr = new URL("https://s.weibo.com/weibo?" + type);
+      searchStr.searchParams.append("q", inputStr + "")
+      searchStr.searchParams.append("timescope", date);
+
+      window.open(searchStr, "weibo")
+
   }
 
   if (typeof document === 'undefined') {
@@ -397,9 +439,37 @@ export default () => {
                     }}>百度</Button>
                   </Space.Compact>
                     <Button onClick={()=>{
-                      openWeibo()
-                    }}>微博</Button>
+                      openMaimai()
+                    }}>脉脉</Button>
                   </Space>
+
+                  <ProCard title="微博" style={{ width: '50%'}} bordered headerBordered>
+                    <Form
+                      form={form}
+                      onFinish={onWeiboFinish}
+                      initialValues={{type: "atten=1", date: [dayjs().subtract(3, "day"), dayjs()]}}
+                    >
+                      <Form.Item label="类型" name="type">
+                        <Radio.Group defaultValue="category=4" onChange={onTypeChange}>
+                          <Radio.Button value="typeall=1">全部</Radio.Button>
+                          <Radio.Button value="atten=1">关注人</Radio.Button>
+                          <Radio.Button value="vip=1" >认证用户</Radio.Button>
+                          <Radio.Button value="category=4">媒体</Radio.Button>
+                        </Radio.Group>
+                      </Form.Item>
+                      <Form.Item label="时间" name="date">
+                        <DatePicker.RangePicker 
+                          onChange={onDateChange}
+                          format={"YYYY-MM-DD-HH"}
+                          defaultValue={[dayjs().subtract(3, "day"), dayjs()]}
+                          showTime={{ use12Hours: false, format: "HH" } }
+                        />
+                      </Form.Item>
+                      <Form.Item>
+                        <Button type="primary" htmlType="submit">搜索</Button>
+                      </Form.Item>
+                    </Form>
+                  </ProCard>
                 </Space> 
                 <ProCard 
                   style={{ marginBlockStart: 28 }} 
