@@ -4,12 +4,14 @@ import {
   GithubFilled,
   InfoCircleFilled,
   LogoutOutlined,
+  MobileFilled,
+  MobileTwoTone,
   PlusCircleFilled,
   QuestionCircleFilled,
   SearchOutlined,
 } from '@ant-design/icons';
 import type { ProSettings } from '@ant-design/pro-components';
-import { DatePicker, Form, InputRef, Radio, RadioChangeEvent, TimePicker } from 'antd';
+import { Avatar, DatePicker, Form, InputRef, Radio, RadioChangeEvent, TimePicker } from 'antd';
 import {
   PageContainer,
   ProCard,
@@ -27,7 +29,8 @@ import {
   theme,
   ConfigProvider,
   Space,
-  Tag
+  Tag,
+  List
 } from 'antd';
 import React, { useRef, useState } from 'react';
 import defaultProps from './_defaultProps.tsx';
@@ -36,6 +39,9 @@ import { TextAreaRef } from 'antd/es/input/TextArea';
 import dayjs from 'dayjs';
 import type { DatePickerProps, RangePickerProps } from 'antd/es/date-picker';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
+
+import groups from './names.json'
+import CheckableTag from 'antd/es/tag/CheckableTag';
 
 dayjs.extend(customParseFormat);
 
@@ -70,43 +76,6 @@ const Item: React.FC<{ children: React.ReactNode }> = (props) => {
 };
 
 const { TextArea } = Input;
-
-const List: React.FC<{ title: string; style?: React.CSSProperties }> = (
-  props,
-) => {
-  const { token } = theme.useToken();
-
-  return (
-    <div
-      style={{
-        width: '100%',
-        ...props.style,
-      }}
-    >
-      <div
-        style={{
-          fontSize: 16,
-          color: token.colorTextHeading,
-          lineHeight: '24px',
-          fontWeight: 500,
-          marginBlockEnd: 16,
-        }}
-      >
-        {props.title}
-      </div>
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-        }}
-      >
-        {new Array(6).fill(1).map((_, index) => {
-          return <Item key={index}>具体的解决方案-{index}</Item>;
-        })}
-      </div>
-    </div>
-  );
-};
 
 const MenuCard = () => {
   const { token } = theme.useToken();
@@ -187,33 +156,41 @@ export default () => {
   const articleRef = useRef<TextAreaRef>(null);
   const inputAiPrompt = useRef<InputRef>(null)
 
+  const groupList = groups.groups
 
   const [form] = Form.useForm();
-  const onTypeChange = (value: RadioChangeEvent)=>{
-    form.setFieldsValue({type: value.target.value})
+  const onTypeChange = (value: RadioChangeEvent) => {
+    form.setFieldsValue({ type: value.target.value })
   }
 
-  const onDateChange = (dateTime: RangePickerProps['value'], dateString: [string, string])=>{
+  const onDateChange = (dateTime: RangePickerProps['value'], dateString: [string, string]) => {
     // console.log(dateTime?.[0]?.format(dateFormat));
-    form.setFieldsValue({date: dateTime})
+    form.setFieldsValue({ date: dateTime })
+  }
+
+  const handleChange = (name: string, checked: boolean) => {
+    let input = inputRef.current?.input
+    if(input != null) {
+      input.value = name
+    }
   }
 
   let openWindow: Window | null = null
 
-  const openAi = (prompt: String)=>{
+  const openAi = (prompt: String) => {
     let article = articleRef.current?.resizableTextArea?.textArea.value
 
     let compose = article + "\n" + prompt;
     utils.copy(compose)
     console.log(openWindow);
-    if(openWindow != null && openWindow.window != null && !openWindow.closed) {
+    if (openWindow != null && openWindow.window != null && !openWindow.closed) {
       openWindow.focus();
     } else {
       openWindow = window.open("https://yiyan.baidu.com/", "yiyan")
     }
   }
 
-  const openBaidu = ()=>{
+  const openBaidu = () => {
 
     // 搜索字符串
     const inputStr = inputRef.current?.input?.value || ""
@@ -228,38 +205,38 @@ export default () => {
     window.open(url.toString(), "baidu")
   }
 
-  const openWeibo = ()=>{
-  
+  const openWeibo = () => {
+
     const inputStr = inputRef.current?.input?.value
     const searchStr = "https://s.weibo.com/weibo?q=" + inputStr
     console.log(searchStr)
     window.open(searchStr)
   }
 
-  const openAll = ()=>{
+  const openAll = () => {
     openBaidu();
     openWeibo();
   }
 
-  const openMaimai = ()=>{
+  const openMaimai = () => {
     const inputStr = inputRef.current?.input?.value
     const searchStr = "https://maimai.cn/web/search_center?type=feed&highlight=true&query=" + inputStr
     console.log(searchStr)
     window.open(searchStr, "maimai")
   }
 
-  const onWeiboFinish = (values: any)=>{
-      let type = values.type;
+  const onWeiboFinish = (values: any) => {
+    let type = values.type;
 
-      let tmpDate = values.date
-      let date = "custom:" + tmpDate[0].format(dateFormat) + ":" + tmpDate[1].format(dateFormat)
+    let tmpDate = values.date
+    let date = "custom:" + tmpDate[0].format(dateFormat) + ":" + tmpDate[1].format(dateFormat)
 
-      const inputStr = inputRef.current?.input?.value
-      const searchStr = new URL("https://s.weibo.com/weibo?" + type);
-      searchStr.searchParams.append("q", inputStr + "")
-      searchStr.searchParams.append("timescope", date);
+    const inputStr = inputRef.current?.input?.value
+    const searchStr = new URL("https://s.weibo.com/weibo?" + type);
+    searchStr.searchParams.append("q", inputStr + "")
+    searchStr.searchParams.append("timescope", date);
 
-      window.open(searchStr, "weibo")
+    window.open(searchStr, "weibo")
 
   }
 
@@ -425,75 +402,109 @@ export default () => {
                   minHeight: 800,
                 }}
                 direction="column"
-                
+
               >
-                <Space direction="vertical">
-                  <Input defaultValue="大厂" style={{ width: '50%'}} ref={inputRef}/>
-                  <Space wrap>
-
-                  <Space.Compact style={{ width: '100%' }}>
-                    <Input defaultValue="baijiahao.baidu.com" ref={inputSi}/>
-                    <Button type="primary" onClick={()=>{
-                      openBaidu()
-                      
-                    }}>百度</Button>
-                  </Space.Compact>
-                    <Button onClick={()=>{
-                      openMaimai()
-                    }}>脉脉</Button>
-                  </Space>
-
-                  <ProCard title="微博" style={{ width: '50%'}} bordered headerBordered>
-                    <Form
-                      form={form}
-                      onFinish={onWeiboFinish}
-                      initialValues={{type: "atten=1", date: [dayjs().subtract(3, "day"), dayjs()]}}
-                    >
-                      <Form.Item label="类型" name="type">
-                        <Radio.Group defaultValue="category=4" onChange={onTypeChange}>
-                          <Radio.Button value="typeall=1">全部</Radio.Button>
-                          <Radio.Button value="atten=1">关注人</Radio.Button>
-                          <Radio.Button value="vip=1" >认证用户</Radio.Button>
-                          <Radio.Button value="category=4">媒体</Radio.Button>
-                        </Radio.Group>
-                      </Form.Item>
-                      <Form.Item label="时间" name="date">
-                        <DatePicker.RangePicker 
-                          onChange={onDateChange}
-                          format={"YYYY-MM-DD-HH"}
-                          defaultValue={[dayjs().subtract(3, "day"), dayjs()]}
-                          showTime={{ use12Hours: false, format: "HH" } }
-                        />
-                      </Form.Item>
-                      <Form.Item>
-                        <Button type="primary" htmlType="submit">搜索</Button>
-                      </Form.Item>
-                    </Form>
-                  </ProCard>
-                </Space> 
-                <ProCard 
-                  style={{ marginBlockStart: 28 }} 
-                  colSpan="100%" 
+                <ProCard
+                  style={{ marginBlockStart: 28 }}
+                  colSpan="100%"
                   bordered
-                  split={ 'vertical'}
+                  split={'vertical'}
                   headerBordered
-                  >
-                    <ProCard title="文章内容" colSpan="50%">
-                      <TextArea rows={24} 
-                        placeholder='输入文章内容'
-                        ref={articleRef}
-                      />
-                    </ProCard>
-                    <ProCard title="AI 提示词">
+                >
+                  <ProCard title="搜索设置" colSpan="50%">
+                    <Space direction="vertical">
+                      <Input defaultValue="大厂" style={{ width: '50%' }} ref={inputRef} />
+                      <Space wrap>
+
+                        <Space.Compact style={{ width: '100%' }}>
+                          <Input defaultValue="baijiahao.baidu.com" ref={inputSi} />
+                          <Button type="primary" onClick={() => {
+                            openBaidu()
+
+                          }}>百度</Button>
+                        </Space.Compact>
+                        <Button onClick={() => {
+                          openMaimai()
+                        }}>脉脉</Button>
+                      </Space>
+
+                      <ProCard title="微博"  bordered headerBordered>
+                        <Form
+                          form={form}
+                          onFinish={onWeiboFinish}
+                          initialValues={{ type: "atten=1", date: [dayjs().subtract(3, "day"), dayjs()] }}
+                        >
+                          <Form.Item label="类型" name="type">
+                            <Radio.Group defaultValue="category=4" onChange={onTypeChange}>
+                              <Radio.Button value="typeall=1">全部</Radio.Button>
+                              <Radio.Button value="atten=1">关注人</Radio.Button>
+                              <Radio.Button value="vip=1" >认证用户</Radio.Button>
+                              <Radio.Button value="category=4">媒体</Radio.Button>
+                            </Radio.Group>
+                          </Form.Item>
+                          <Form.Item label="时间" name="date">
+                            <DatePicker.RangePicker
+                              onChange={onDateChange}
+                              format={"YYYY-MM-DD-HH"}
+                              defaultValue={[dayjs().subtract(3, "day"), dayjs()]}
+                              showTime={{ use12Hours: false, format: "HH" }}
+                            />
+                          </Form.Item>
+                          <Form.Item>
+                            <Button type="primary" htmlType="submit">搜索</Button>
+                          </Form.Item>
+                        </Form>
+                      </ProCard>
+                    </Space>
+                  </ProCard>
+                  <ProCard title="圈子" colSpan="50%" direction='column'>
+                    <List
+                      itemLayout="vertical"
+                      dataSource={groupList}
+                      pagination={{position: 'bottom', pageSize: 4}}
+                      renderItem={(item, index) => (
+                        <List.Item>
+                          <List.Item.Meta title={item.group} avatar={<Avatar icon={<MobileTwoTone twoToneColor={settings?.colorPrimary}/>}/>} />
+                          <Space size={[0, 8]} wrap>
+                            {item.list.map((name) => (
+                              <CheckableTag
+                                key={name}
+                                checked={false}
+                                onChange={(checked) => handleChange(name, checked)}
+                              >
+                                {name}
+                              </CheckableTag>
+                            ))}
+                          
+                        </Space>
+                        </List.Item>
+                      )}
+                    />
+                  </ProCard>
+                </ProCard>
+                <ProCard
+                  style={{ marginBlockStart: 28 }}
+                  colSpan="100%"
+                  bordered
+                  split={'vertical'}
+                  headerBordered
+                >
+                  <ProCard title="文章内容" colSpan="50%">
+                    <TextArea rows={24}
+                      placeholder='输入文章内容'
+                      ref={articleRef}
+                    />
+                  </ProCard>
+                  <ProCard title="AI 提示词">
                     <Space direction='vertical' size={[0, 20]} >
-                      <Tag color="magenta" onClick={(e)=>{
+                      <Tag color="magenta" onClick={(e) => {
                         openAi(e.target?.innerText || "")
                       }
-                    }>内容用中文写一篇稿子，开头不要和原文一样，把【大厂青年】写到文章第一段话的开头</Tag>
-                      <Tag color="red" onClick={(e)=>{
+                      }>内容用中文写一篇稿子，开头不要和原文一样，把【大厂青年】写到文章第一段话的开头</Tag>
+                      <Tag color="red" onClick={(e) => {
                         openAi(e.target?.innerText || "")
                       }
-                    }>就以上内容用中文写一篇稿子，开头不要和原文一样，把【大厂青年】写到文章第一段话的开头</Tag>
+                      }>就以上内容用中文写一篇稿子，开头不要和原文一样，把【大厂青年】写到文章第一段话的开头</Tag>
                       {/* <Tag color="volcano"></Tag>
                       <Tag color="orange">orange</Tag>
                       <Tag color="gold">gold</Tag>
@@ -505,13 +516,13 @@ export default () => {
                       <Tag color="purple">purple</Tag> */}
                       <Space.Compact style={{ width: '100%' }}>
                         <Input placeholder="AI 提示词" allowClear ref={inputAiPrompt} />
-                      
-                        <Button type="primary" onClick={()=>{
-                            openAi(inputAiPrompt.current?.input?.value || "")
+
+                        <Button type="primary" onClick={() => {
+                          openAi(inputAiPrompt.current?.input?.value || "")
                         }}>文心一言</Button>
                       </Space.Compact>
                     </Space>
-                    </ProCard>
+                  </ProCard>
                 </ProCard>
               </ProCard>
             </PageContainer>
