@@ -153,6 +153,8 @@ export default () => {
   const inputRef = useRef<InputRef>(null);
   const inputSi = useRef<InputRef>(null);
 
+  const [searchStr, setSearchStr] = useState('');
+
   const articleRef = useRef<TextAreaRef>(null);
   const inputAiPrompt = useRef<InputRef>(null)
 
@@ -169,11 +171,16 @@ export default () => {
   }
 
   const handleChange = (name: string, checked: boolean) => {
-    let input = inputRef.current?.input
-    if(input != null) {
-      input.value = name
-    }
+    // let input = inputRef.current?.input
+    // if(input != null) {
+    //   input.value = name
+    // }
+    setSearchStr(name)
   }
+
+  const handleSearchChange = event => {
+    setSearchStr(event.target.value);
+  };
 
   let openWindow: Window | null = null
 
@@ -193,7 +200,7 @@ export default () => {
   const openBaidu = () => {
 
     // 搜索字符串
-    const inputStr = inputRef.current?.input?.value || ""
+    const inputStr = searchStr || ""
     // 站内地址
     const siteStr = inputSi.current?.input?.value || "";
 
@@ -207,10 +214,10 @@ export default () => {
 
   const openWeibo = () => {
 
-    const inputStr = inputRef.current?.input?.value
-    const searchStr = "https://s.weibo.com/weibo?q=" + inputStr
-    console.log(searchStr)
-    window.open(searchStr)
+    const inputStr = searchStr
+    const searchStrHandled = "https://s.weibo.com/weibo?q=" + inputStr
+    console.log(searchStrHandled)
+    window.open(searchStrHandled)
   }
 
   const openAll = () => {
@@ -219,10 +226,10 @@ export default () => {
   }
 
   const openMaimai = () => {
-    const inputStr = inputRef.current?.input?.value
-    const searchStr = "https://maimai.cn/web/search_center?type=feed&highlight=true&query=" + inputStr
-    console.log(searchStr)
-    window.open(searchStr, "maimai")
+    const inputStr = searchStr
+    const searchStrHandled = "https://maimai.cn/web/search_center?type=feed&highlight=true&query=" + inputStr
+    console.log(searchStrHandled)
+    window.open(searchStrHandled, "maimai")
   }
 
   const onWeiboFinish = (values: any) => {
@@ -231,10 +238,10 @@ export default () => {
     let tmpDate = values.date
     let date = "custom:" + tmpDate[0].format(dateFormat) + ":" + tmpDate[1].format(dateFormat)
 
-    const inputStr = inputRef.current?.input?.value
-    const searchStr = new URL("https://s.weibo.com/weibo?" + type);
-    searchStr.searchParams.append("q", inputStr + "")
-    searchStr.searchParams.append("timescope", date);
+    const inputStr = searchStr
+    const searchStrHandled = new URL("https://s.weibo.com/weibo?" + type);
+    searchStrHandled.searchParams.append("q", inputStr + "")
+    searchStrHandled.searchParams.append("timescope", date);
 
     window.open(searchStr, "weibo")
 
@@ -354,7 +361,8 @@ export default () => {
                     paddingBlockStart: 12,
                   }}
                 >
-                  <div>© 2023 大厂青年</div>
+                  <div><a href="https://beian.miit.gov.cn/" target="_blank">京ICP备2023015072号-1</a></div>
+                  <div> © 2023 大厂青年</div>
                   <div>by 老铁</div>
                 </div>
               );
@@ -413,7 +421,7 @@ export default () => {
                 >
                   <ProCard title="搜索设置" colSpan="50%">
                     <Space direction="vertical">
-                      <Input defaultValue="大厂" style={{ width: '50%' }} ref={inputRef} />
+                      <Input style={{ width: '50%' }} value={searchStr} onChange={handleSearchChange}/>
                       <Space wrap>
 
                         <Space.Compact style={{ width: '100%' }}>
@@ -432,7 +440,7 @@ export default () => {
                         <Form
                           form={form}
                           onFinish={onWeiboFinish}
-                          initialValues={{ type: "atten=1", date: [dayjs().subtract(3, "day"), dayjs()] }}
+                          initialValues={{ type: "atten=1", date: [dayjs().subtract(7, "day"), dayjs()] }}
                         >
                           <Form.Item label="类型" name="type">
                             <Radio.Group defaultValue="category=4" onChange={onTypeChange}>
@@ -446,7 +454,7 @@ export default () => {
                             <DatePicker.RangePicker
                               onChange={onDateChange}
                               format={"YYYY-MM-DD-HH"}
-                              defaultValue={[dayjs().subtract(3, "day"), dayjs()]}
+                              defaultValue={[dayjs().subtract(7, "day"), dayjs()]}
                               showTime={{ use12Hours: false, format: "HH" }}
                             />
                           </Form.Item>
