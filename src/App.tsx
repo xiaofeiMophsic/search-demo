@@ -232,6 +232,26 @@ export default () => {
     window.open(searchStrHandled, "maimai")
   }
 
+  const openToutiao = () => {
+    //https://so.toutiao.com/search?dvpf=pc&source=input&keyword=%E6%BB%B4%E6%BB%B4&filter_vendor=site&index_resource=site&filter_period=week&min_time=1686906358&max_time=1687511158
+    // 一周时间
+    let max = dayjs().unix().toString()
+    let min = dayjs().subtract(7, "day").unix().toString()
+
+    const inputStr = searchStr
+    const searchStrHandled = new URL("https://so.toutiao.com/search?");
+    searchStrHandled.searchParams.append("keyword", inputStr + "")
+    searchStrHandled.searchParams.append("dvpf", "pc");
+    searchStrHandled.searchParams.append("source", "input");
+    searchStrHandled.searchParams.append("filter_vendor", "site");
+    searchStrHandled.searchParams.append("index_resource", "site");
+    searchStrHandled.searchParams.append("filter_period", "week");
+    searchStrHandled.searchParams.append("min_time", min);
+    searchStrHandled.searchParams.append("max_time", max);
+
+    window.open(searchStrHandled, "toutiao")
+  }
+
   const onWeiboFinish = (values: any) => {
     let type = values.type;
 
@@ -243,7 +263,7 @@ export default () => {
     searchStrHandled.searchParams.append("q", inputStr + "")
     searchStrHandled.searchParams.append("timescope", date);
 
-    window.open(searchStr, "weibo")
+    window.open(searchStrHandled, "weibo")
 
   }
 
@@ -434,6 +454,9 @@ export default () => {
                         <Button onClick={() => {
                           openMaimai()
                         }}>脉脉</Button>
+                        <Button onClick={() => {
+                          openToutiao()
+                        }}>头条</Button>
                       </Space>
 
                       <ProCard title="微博"  bordered headerBordered>
